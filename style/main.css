@@ -1,0 +1,55 @@
+body {
+    margin: 0;
+    vertical-align: top;
+}
+
+#resource-container {
+    display: inline-block;
+    width: 20%;
+    margin-right: 5px;
+    float: left;
+}
+
+#object-container {
+    display: inline-block;
+    width: calc(80% - 5px);
+    float: left;
+}
+
+.im-resource, .im-object {
+    border: 1px solid black;
+    height: 25px;
+    vertical-align: middle;
+    width: calc(100% - 2px);
+    position: relative;
+}
+
+.im-object .im-text {
+    margin: 0;
+}
+
+.im-object:hover .im-description {
+    display: block;
+}
+
+.im-description {
+    display: none;
+    position: absolute;
+    left: 20px;
+    width: 200px;
+    background-color: white;
+    border: 1px solid black;
+    z-index: 100;
+}
+
+.im-description>p {
+    margin-top: 0;
+}
+
+.im-description .im-name {
+    float: left;
+}
+
+.im-description .im-value {
+    float: right;
+}
