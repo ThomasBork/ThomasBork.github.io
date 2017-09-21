@@ -29,6 +29,12 @@ CONSTANTS.GRID_HEIGHT = 12;
 CONSTANTS.WORKER_WIDTH = 0.6 / CONSTANTS.GRID_WIDTH;
 CONSTANTS.WORKER_HEIGHT = 0.8 / CONSTANTS.GRID_HEIGHT;
 
+var ELEMENT = {
+    TREE: "tree",
+    HOUSE: "house",
+    STONE: "stone"
+};
+
 function gameLoop () {
     requestAnimationFrame(gameLoop, canvas);
 
@@ -46,7 +52,28 @@ function gameLoop () {
 
 function update (deltaTime) {
     for(var index in workers) {
+        var worker = workers[index];
+
+        var destinationCell = worker.destination;
+        var destination = getGameCoordinatesFromGrid(destinationCell.x, destinationCell.y);
+
+        var deltaX = destination.x - worker.x;
+        var deltaY = destination.y - worker.y;
         
+        var maxMoveX = worker.speed * deltaTime;
+        var maxMoveY = worker.speed * deltaTime;
+
+        if(Math.abs(deltaX) - maxMoveX > 0) {
+            worker.x += Math.sign(deltaX) * maxMoveX;
+        } else {
+            worker.x += deltaX;
+        }
+
+        if(Math.abs(deltaY) - maxMoveY > 0) {
+            worker.y += Math.sign(deltaY) * maxMoveY;
+        } else {
+            worker.y += deltaY;
+        }
     }
 }
 
@@ -102,19 +129,23 @@ function handleClick(e) {
     var x = e.clientX;
     var y = e.clientY;
 
-    var houses = findElementsOfType("house");
-    for(var index in houses) {
-        var house = houses[index];
-        if(house.containsPoint(x, y)) {
-            var worker = new GameElement(house.x, house.y, CONSTANTS.WORKER_WIDTH, CONSTANTS.WORKER_HEIGHT, "worker");
-            workers.push(worker);
-        }
+    var gridCoordinates = getGridCoordinatesFromCanvasCoordinates(x, y);
+
+    var gridElement = grid[gridCoordinates.x][gridCoordinates.y];
+
+    if(gridElement != undefined && gridElement.type == ELEMENT.HOUSE) {
+        var worker = newWorker(gridElement.x, gridElement.y);
+        workers.push(worker);
+
+        var pathToNearestTree = getPathToNearest(gridCoordinates.x, gridCoordinates.y, ELEMENT.TREE);
+
+        worker.destination = pathToNearestTree[1];
     }
 }
 
 function findElementsOfType(type) {
     return findElements(function (element) {
-        return element != undefined && element.imageUrl == type;
+        return element != undefined && element.type == type;
     });
 }
 
@@ -156,19 +187,19 @@ function setUpUIElements () {
         grid[x] = [];
         for(var y = 0; y < CONSTANTS.GRID_HEIGHT; y++) {
             if(startX == x && startY == y) {
-                var element = new GameElement(x * tileWidth, y * tileHeight, tileWidth, tileHeight, "house");
+                var element = new GameElement(x * tileWidth, y * tileHeight, tileWidth, tileHeight, ELEMENT.HOUSE);
                 gameContainer.addChild(element);
                 grid[x][y] = element;
             }
             else if((startX == x - 1 || startX == x || startX == x + 1) &&
                 (startY == y - 1 || startY == y || startY == y + 1)) {
             } else {
-                var imageName = "tree";
+                var type = ELEMENT.TREE;
                 var roll = Math.random();
                 if(roll < 0.2) {
-                    imageName = "stone";
+                    type = ELEMENT.STONE;
                 }
-                var element = new GameElement(x * tileWidth, y * tileHeight, tileWidth, tileHeight, imageName);
+                var element = new GameElement(x * tileWidth, y * tileHeight, tileWidth, tileHeight, type);
                 gameContainer.addChild(element);
                 grid[x][y] = element;
             }

@@ -1,4 +1,4 @@
-function GameElement (x, y, width, height, imageUrl) {
+function GameElement (x, y, width, height, type) {
     // Set up object properties
 	this.x = x;
 	this.y = y;
@@ -6,11 +6,12 @@ function GameElement (x, y, width, height, imageUrl) {
 	this.height = height;
 	this.dx = 0;
 	this.dy = 0;
-	this.imageUrl = imageUrl;
+	this.imageUrl = type;
 	this.image = new Image();
 	this.imageLoaded = false;
 	this.children = [];
 	this.parent = null;
+	this.type = type;
 
     // Set up a callback to the onload event on image
 	this.image.onload = function () {
@@ -18,7 +19,7 @@ function GameElement (x, y, width, height, imageUrl) {
 	}.bind(this); // Binding "this" to the function, so it can refer to this element.
 
     // Start loading the image
-	this.image.src = "res/" + imageUrl + ".png";
+	this.image.src = "res/" + this.imageUrl + ".png";
 }
 
 // Updates the position of the element relative to time elapsed since last update.

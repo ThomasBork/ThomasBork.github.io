@@ -38,23 +38,56 @@ function getShortestPathsInner (pathGrid, currentPath, moves) {
     if(pathGrid[lastTile.x][lastTile.y] == null || pathGrid[lastTile.x][lastTile.y].length > currentPath.length) {
         // Update new shortest path
         pathGrid[lastTile.x][lastTile.y] = currentPath;
+
+        if(grid[lastTile.x][lastTile.y] == undefined || grid[lastTile.x][lastTile.y].type == ELEMENT.HOUSE) {
+            for(var moveIndex in moves) {
+                var newX = lastTile.x + moves[moveIndex].x;
+                var newY = lastTile.y + moves[moveIndex].y;
+                if(newX >= 0 && newX < CONSTANTS.GRID_WIDTH && 
+                    newY >= 0 && newY < CONSTANTS.GRID_HEIGHT) {
         
-        for(var moveIndex in moves) {
-            var newX = lastTile.x + moves[moveIndex].x;
-            var newY = lastTile.y + moves[moveIndex].y;
-            if(newX >= 0 && newX < CONSTANTS.GRID_WIDTH && 
-                newY >= 0 && newY < CONSTANTS.GRID_HEIGHT) {
-    
-                var newPath = cloneArray(currentPath);
-                newPath.push({x: newX, y: newY});
-    
-                // Empty space, can pass
-                if(grid[newX][newY] == undefined || grid[newX][newY].imageUrl == "house") {
+                    var newPath = cloneArray(currentPath);
+                    newPath.push({x: newX, y: newY});
+        
+                    // Empty space, can pass
                     getShortestPathsInner(pathGrid, newPath, moves);
-                } 
+                }
             }
         }
     }
+}
+
+function getPathToNearest(gridX, gridY, type, shortestPaths) {
+    if(shortestPaths == undefined) {
+        shortestPaths = getShortestPaths(gridX, gridY);
+    }
+
+    var coordinates = findCoordinatesInGrid(function (x, y) {
+        return shortestPaths[x][y] != null && grid[x][y] != null && grid[x][y].type == type;
+    });
+
+    var bestPath = null;
+    for(var index in coordinates) {
+        var co = coordinates[index];
+        var path = shortestPaths[co.x][co.y];
+        if(bestPath === null || path.length < bestPath.length) {
+            bestPath = path;
+        }
+    }
+
+    return bestPath;
+}
+
+function findCoordinatesInGrid(predicate) {
+    var coordinates = [];
+    for(var x = 0; x < CONSTANTS.GRID_WIDTH; x++) {
+        for(var y = 0; y < CONSTANTS.GRID_HEIGHT; y++) {
+            if(predicate(x, y) === true) {
+                coordinates.push({x: x, y: y});
+            }
+        }
+    }
+    return coordinates;
 }
 
 function getGridCoordinatesFromCanvasCoordinates(x, y) {
@@ -68,5 +101,12 @@ function getGridCoordinatesFromGameCoordinates(x, y) {
     return {
         x: Math.floor(x * CONSTANTS.GRID_WIDTH),
         y: Math.floor(y * CONSTANTS.GRID_WIDTH)
+    }
+}
+
+function getGameCoordinatesFromGrid (x, y) {
+    return {
+        x: x / CONSTANTS.GRID_WIDTH, 
+        y: y / CONSTANTS.GRID_HEIGHT 
     }
 }
