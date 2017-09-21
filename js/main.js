@@ -59,29 +59,33 @@ function update (deltaTime) {
         var worker = workers[index];
 
         var destinationCell = worker.destination;
-        var destination = getGameCoordinatesFromGrid(destinationCell.x, destinationCell.y);
+        if(destinationCell != undefined) {
+            var destination = getGameCoordinatesFromGrid(destinationCell.x, destinationCell.y);
 
-        var delta = {
-            x: destination.x - worker.x,
-            y: destination.y - worker.y
-        };
+            var delta = {
+                x: destination.x - worker.x,
+                y: destination.y - worker.y
+            };
 
-        var deltaLength = getVectorLength(delta);
+            var deltaLength = getVectorLength(delta);
 
-        if(deltaLength > worker.speed * deltaTime) {
-            worker.x += (delta.x / deltaLength) * worker.speed * deltaTime;
-            worker.y += (delta.y / deltaLength) * worker.speed * deltaTime;
-        } else {
-            worker.x += delta.x;
-            worker.y += delta.y;
+            if(deltaLength > worker.speed * deltaTime) {
+                worker.x += (delta.x / deltaLength) * worker.speed * deltaTime;
+                worker.y += (delta.y / deltaLength) * worker.speed * deltaTime;
+            } else {
+                worker.x += delta.x;
+                worker.y += delta.y;
 
-            if(worker.job == JOB.TREE) {
-                var gridCell = grid[worker.destination.x][worker.destination.y];
-                if(gridCell != undefined && gridCell.type == ELEMENT.TREE) {
-                    grid[worker.destination.x][worker.destination.y] = undefined;
-                } else {
-                    var pathToNearestTree = getPathToNearest(worker.destination.x, worker.destination.y, ELEMENT.TREE);           
-                    worker.destination = pathToNearestTree[1];
+                if(worker.job == JOB.TREE) {
+                    var gridCell = grid[worker.destination.x][worker.destination.y];
+                    if(gridCell != undefined && gridCell.type == ELEMENT.TREE) {
+                        grid[worker.destination.x][worker.destination.y] = undefined;
+                    } else {
+                        var pathToNearestTree = getPathToNearest(worker.destination.x, worker.destination.y, ELEMENT.TREE);
+                        if(pathToNearestTree != null) {     
+                            worker.destination = pathToNearestTree[1];
+                        }
+                    }
                 }
             }
         }
