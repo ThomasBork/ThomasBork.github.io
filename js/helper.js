@@ -110,3 +110,7 @@ function getGameCoordinatesFromGrid (x, y) {
         y: y / CONSTANTS.GRID_HEIGHT 
     }
 }
+
+function getVectorLength (vector) {
+    return Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+}

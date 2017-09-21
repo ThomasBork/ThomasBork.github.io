@@ -35,6 +35,10 @@ var ELEMENT = {
     STONE: "stone"
 };
 
+var JOB = {
+    TREE: "tree"
+};
+
 function gameLoop () {
     requestAnimationFrame(gameLoop, canvas);
 
@@ -57,22 +61,29 @@ function update (deltaTime) {
         var destinationCell = worker.destination;
         var destination = getGameCoordinatesFromGrid(destinationCell.x, destinationCell.y);
 
-        var deltaX = destination.x - worker.x;
-        var deltaY = destination.y - worker.y;
-        
-        var maxMoveX = worker.speed * deltaTime;
-        var maxMoveY = worker.speed * deltaTime;
+        var delta = {
+            x: destination.x - worker.x,
+            y: destination.y - worker.y
+        };
 
-        if(Math.abs(deltaX) - maxMoveX > 0) {
-            worker.x += Math.sign(deltaX) * maxMoveX;
-        } else {
-            worker.x += deltaX;
-        }
+        var deltaLength = getVectorLength(delta);
 
-        if(Math.abs(deltaY) - maxMoveY > 0) {
-            worker.y += Math.sign(deltaY) * maxMoveY;
+        if(deltaLength > worker.speed * deltaTime) {
+            worker.x += (delta.x / deltaLength) * worker.speed * deltaTime;
+            worker.y += (delta.y / deltaLength) * worker.speed * deltaTime;
         } else {
-            worker.y += deltaY;
+            worker.x += delta.x;
+            worker.y += delta.y;
+
+            if(worker.job == JOB.TREE) {
+                var gridCell = grid[worker.destination.x][worker.destination.y];
+                if(gridCell != undefined && gridCell.type == ELEMENT.TREE) {
+                    grid[worker.destination.x][worker.destination.y] = undefined;
+                } else {
+                    var pathToNearestTree = getPathToNearest(worker.destination.x, worker.destination.y, ELEMENT.TREE);           
+                    worker.destination = pathToNearestTree[1];
+                }
+            }
         }
     }
 }
@@ -80,8 +91,18 @@ function update (deltaTime) {
 function draw () {
     clearCanvas();
 
-    // Draw background and grid
+    // Draw background
     gameContainer.draw(context);
+
+    // Draw grid
+    for(var x = 0; x < CONSTANTS.GRID_WIDTH; x++){
+        for(var y = 0; y < CONSTANTS.GRID_WIDTH; y++){
+            var element = grid[x][y];
+            if(element != undefined) {
+                element.draw(context);
+            }
+        }
+    }
 
     // Draw workers
     for(var index in workers) {
@@ -134,12 +155,12 @@ function handleClick(e) {
     var gridElement = grid[gridCoordinates.x][gridCoordinates.y];
 
     if(gridElement != undefined && gridElement.type == ELEMENT.HOUSE) {
-        var worker = newWorker(gridElement.x, gridElement.y);
+        var worker = newWorker(gridElement.x, gridElement.y, JOB.TREE);
         workers.push(worker);
 
         var pathToNearestTree = getPathToNearest(gridCoordinates.x, gridCoordinates.y, ELEMENT.TREE);
 
-        worker.destination = pathToNearestTree[1];
+        worker.destination = pathToNearestTree[0];
     }
 }
 
@@ -188,7 +209,6 @@ function setUpUIElements () {
         for(var y = 0; y < CONSTANTS.GRID_HEIGHT; y++) {
             if(startX == x && startY == y) {
                 var element = new GameElement(x * tileWidth, y * tileHeight, tileWidth, tileHeight, ELEMENT.HOUSE);
-                gameContainer.addChild(element);
                 grid[x][y] = element;
             }
             else if((startX == x - 1 || startX == x || startX == x + 1) &&
@@ -200,7 +220,6 @@ function setUpUIElements () {
                     type = ELEMENT.STONE;
                 }
                 var element = new GameElement(x * tileWidth, y * tileHeight, tileWidth, tileHeight, type);
-                gameContainer.addChild(element);
                 grid[x][y] = element;
             }
         }
