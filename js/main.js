@@ -1,18 +1,3 @@
-var RESOURCE_TYPE = {
-    WOOD: { 
-        name: "Wood",
-        description: ""
-    },
-    STONES: { 
-        name: "Stones",
-        description: ""
-    },
-    GOLD: {
-        name: "Gold",
-        description: ""
-    }
-};
-
 var canvas;
 var context;
 
@@ -36,7 +21,8 @@ var ELEMENT = {
 };
 
 var JOB = {
-    TREE: "tree"
+    TREE: "tree",
+    STONE: "stone"
 };
 
 function gameLoop () {
@@ -76,17 +62,7 @@ function update (deltaTime) {
                 worker.x += delta.x;
                 worker.y += delta.y;
 
-                if(worker.job == JOB.TREE) {
-                    var gridCell = grid[worker.destination.x][worker.destination.y];
-                    if(gridCell != undefined && gridCell.type == ELEMENT.TREE) {
-                        grid[worker.destination.x][worker.destination.y] = undefined;
-                    } else {
-                        var pathToNearestTree = getPathToNearest(worker.destination.x, worker.destination.y, ELEMENT.TREE);
-                        if(pathToNearestTree != null) {     
-                            worker.destination = pathToNearestTree[1];
-                        }
-                    }
-                }
+                handleDestinationReached(worker);
             }
         }
     }
@@ -159,7 +135,7 @@ function handleClick(e) {
     var gridElement = grid[gridCoordinates.x][gridCoordinates.y];
 
     if(gridElement != undefined && gridElement.type == ELEMENT.HOUSE) {
-        var worker = newWorker(gridElement.x, gridElement.y, JOB.TREE);
+        var worker = newWorker(gridElement.x, gridElement.y, [JOB.TREE, JOB.STONE, JOB.TREE]);
         workers.push(worker);
 
         var pathToNearestTree = getPathToNearest(gridCoordinates.x, gridCoordinates.y, ELEMENT.TREE);
