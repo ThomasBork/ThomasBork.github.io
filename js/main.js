@@ -14,16 +14,23 @@ CONSTANTS.GRID_HEIGHT = 12;
 CONSTANTS.WORKER_WIDTH = 0.6 / CONSTANTS.GRID_WIDTH;
 CONSTANTS.WORKER_HEIGHT = 0.8 / CONSTANTS.GRID_HEIGHT;
 
-var ELEMENT = {
-    TREE: "tree",
-    HOUSE: "house",
-    STONE: "stone"
+var RESOURCES = {
+    WOOD: "Wood",
+    STONE: "Stone"
 };
 
-var JOB = {
-    TREE: "tree",
-    STONE: "stone"
+var ELEMENT = {
+    TREE: "Tree",
+    HOUSE: "House",
+    STONE: "Stone"
 };
+
+var JOB_TYPE = {
+    WOODCUTTER: "Woodcutter",
+    STONEMINER: "Stone Miner"
+};
+
+var resources = {};
 
 function gameLoop () {
     requestAnimationFrame(gameLoop, canvas);
@@ -44,25 +51,27 @@ function update (deltaTime) {
     for(var index in workers) {
         var worker = workers[index];
 
-        var destinationCell = worker.destination;
-        if(destinationCell != undefined) {
-            var destination = getGameCoordinatesFromGrid(destinationCell.x, destinationCell.y);
+        if(worker.currentPath != undefined) {
+            var nextCell = worker.currentPath[1];
+            if(nextCell != undefined) {
+                var destination = getGameCoordinatesFromGrid(nextCell.x, nextCell.y);
 
-            var delta = {
-                x: destination.x - worker.x,
-                y: destination.y - worker.y
-            };
-
-            var deltaLength = getVectorLength(delta);
-
-            if(deltaLength > worker.speed * deltaTime) {
-                worker.x += (delta.x / deltaLength) * worker.speed * deltaTime;
-                worker.y += (delta.y / deltaLength) * worker.speed * deltaTime;
-            } else {
-                worker.x += delta.x;
-                worker.y += delta.y;
-
-                handleDestinationReached(worker);
+                var delta = {
+                    x: destination.x - worker.x,
+                    y: destination.y - worker.y
+                };
+    
+                var deltaLength = getVectorLength(delta);
+    
+                if(deltaLength > worker.speed * deltaTime) {
+                    worker.x += (delta.x / deltaLength) * worker.speed * deltaTime;
+                    worker.y += (delta.y / deltaLength) * worker.speed * deltaTime;
+                } else {
+                    worker.x += delta.x;
+                    worker.y += delta.y;
+    
+                    handleDestinationReached(worker);
+                }
             }
         }
     }
@@ -135,12 +144,10 @@ function handleClick(e) {
     var gridElement = grid[gridCoordinates.x][gridCoordinates.y];
 
     if(gridElement != undefined && gridElement.type == ELEMENT.HOUSE) {
-        var worker = newWorker(gridElement.x, gridElement.y, [JOB.TREE, JOB.STONE, JOB.TREE]);
+        var worker = newWorker(gridElement.x, gridElement.y);
         workers.push(worker);
 
-        var pathToNearestTree = getPathToNearest(gridCoordinates.x, gridCoordinates.y, ELEMENT.TREE);
-
-        worker.destination = pathToNearestTree[0];
+        setJob(worker, JOB_TYPE.WOODCUTTER);
     }
 }
 
@@ -188,11 +195,13 @@ function setUpUIElements () {
         grid[x] = [];
         for(var y = 0; y < CONSTANTS.GRID_HEIGHT; y++) {
             if(startX == x && startY == y) {
+                // Spawn house
                 var element = new GameElement(x * tileWidth, y * tileHeight, tileWidth, tileHeight, ELEMENT.HOUSE);
                 grid[x][y] = element;
             }
             else if((startX == x - 1 || startX == x || startX == x + 1) &&
                 (startY == y - 1 || startY == y || startY == y + 1)) {
+                // No spawn
             } else {
                 var type = ELEMENT.TREE;
                 var roll = Math.random();
@@ -200,9 +209,14 @@ function setUpUIElements () {
                     type = ELEMENT.STONE;
                 }
                 var element = new GameElement(x * tileWidth, y * tileHeight, tileWidth, tileHeight, type);
+                element.health = 12;
                 grid[x][y] = element;
             }
         }
+    }
+
+    for(var index in RESOURCES) {
+        resources[RESOURCES[index]] = 0;
     }
 }
 
