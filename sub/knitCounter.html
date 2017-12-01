@@ -1,8 +1,43 @@
 <html>
     <head>
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <style>
+            .line{
+                width: 100%;
+                height: 30px;
+            }
+            .button{
+                width: 35%;
+                height: 30px;
+            }
+            .counter{
+                width: 30%;
+                height: 30px;
+                text-align: center;
+            }
+        </style>
     </head>
     <body>
-        Jeg er strik!
+        <script>
+            var lineCount = 4;
+            for(var i = 0; i<lineCount; i++) {
+                var jqDiv = $('<div class="line">');
+                var jqSub = $('<input type="button" class="subButton button" value="-">');
+                var jqCounter = $('<input type="text" class="counter" value="0">');
+                var jqAdd = $('<input type="button" class="addButton button" value="+">');
+                jqDiv.append(jqSub).append(jqCounter).append(jqAdd);
+                $('body').append(jqDiv);
+            }
+            $('.subButton').on("click", function () {
+                var jqText = $(this).closest('.line').find('.counter');
+                var number = jqText.val() * 1;
+                jqText.val(number - 1);
+            });
+            $('.addButton').on("click", function () {
+                var jqText = $(this).closest('.line').find('.counter');
+                var number = jqText.val() * 1;
+                jqText.val(number + 1);
+            });
+        </script>
     </body>
 </html />
